@@ -1,0 +1,36 @@
+WITH AnaliseJava AS 
+(
+  SELECT blockVer.Id AS Id, blockVer.PostBlockTypeId AS PostBlockTypeId, blockVer.PostId AS PostId, blockVer.LocalId AS LocalId, blockVer.RootPostBlockVersionId AS RootPostBlockVersion, blockVer.PredEqual AS PredEqual, blockVer.PredSimilarity AS PredSimilarity, blockVer.Content AS Content, posts.OwnerUserId AS OwnerUserId                   
+  FROM `sotorrent-org.2018_09_23.PostBlockVersion` blockVer
+  JOIN `sotorrent-org.2018_09_23.Posts` posts
+  ON blockVer.PostId = posts.Id
+  WHERE posts.Tags = '<java>' AND blockVer.PostBlockTypeId = 2
+  ORDER BY PostHistoryId ASC, LocalId ASC
+  LIMIT 10000
+ ),
+ ModifiedBlocks AS
+ (
+   SELECT *
+   FROM AnaliseJava
+   WHERE PredSimilarity <> 1.0 AND PredSimilarity IS NOT null
+   ORDER BY RootPostBlockVersion ASC
+  ),
+  MostActiveUser AS
+  (
+   SELECT COUNT(OwnerUserId) AS MostActive, OwnerUserId
+   FROM ModifiedBlocks
+   GROUP BY OwnerUserId
+   ORDER BY MostActive DESC
+  ),
+   MostActiveUsers AS
+   (
+    SELECT *
+    FROM `sotorrent-org.2018_09_23.Users` AS Users
+    JOIN MostActiveUser
+    ON Users.Id = MostActiveUser.OwnerUserId
+    ORDER BY MostActiveUser.MostActive DESC
+    )
+      SELECT COUNT(Location) AS ActiveCountry, Location, SUM(Reputation) AS Reputation
+      FROM MostActiveUsers
+      GROUP BY Location
+      ORDER BY ActiveCountry DESC, Reputation DESC;
