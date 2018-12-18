@@ -30,7 +30,7 @@ WITH AnaliseJava AS
     ON Users.Id = MostActiveUser.OwnerUserId
     ORDER BY MostActiveUser.MostActive DESC
     )
-      SELECT COUNT(Location) AS ActiveCountry, Location, SUM(Reputation) AS Reputation
+      SELECT COUNT(Location) AS ActiveCountry, Location, AVG(Reputation) AS Reputation
       FROM MostActiveUsers
       GROUP BY Location
       ORDER BY ActiveCountry DESC, Reputation DESC;
